@@ -206,7 +206,7 @@ void TAprocess(int id, SharedData* shm) {
 
 int main(int argc, char* argv[]) {
     if (argc != 2) {
-        cout << "./part2a [# of TA's]" << endl;
+        cout << "./part2b [# of TA's]" << endl;
         return 1;
     }
 
