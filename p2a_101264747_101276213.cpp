@@ -11,10 +11,10 @@ using namespace std;
 #define NUM_QUESTIONS 5
 
 struct SharedData {
-    int currentStudent;
-    int currentExamIndex;
+    int currStudent;
+    int currExamIndex;
     char rubric[NUM_QUESTIONS];
-    int questionStatus[NUM_QUESTIONS]; 
+    int qStatus[NUM_QUESTIONS]; 
     int stopFlag;
 };
 
@@ -47,10 +47,10 @@ void loadExam(SharedData* shm) {
     char filename[50];
 
     // Reach exam 50: jump  to termination exam (9999)
-    if (shm->currentExamIndex >= 50) {
+    if (shm->currExamIndex >= 50) {
         sprintf(filename, "exams/exam_9999.txt");
     } else {
-        sprintf(filename, "exams/exam_%04d.txt", shm->currentExamIndex + 1);
+        sprintf(filename, "exams/exam_%04d.txt", shm->currExamIndex + 1);
     }
 
     ifstream file(filename);
@@ -59,11 +59,11 @@ void loadExam(SharedData* shm) {
         return;
     }
 
-    file >> shm->currentStudent;
+    file >> shm->currStudent;
     file.close();
 
     for (int i = 0; i < NUM_QUESTIONS; i++)
-        shm->questionStatus[i] = 0;
+        shm->qStatus[i] = 0;
 }
 
 void TAprocess(int id, SharedData* shm) {
@@ -96,14 +96,14 @@ void TAprocess(int id, SharedData* shm) {
 
         // Mark a question
         for (int i = 0; i < NUM_QUESTIONS; i++) {
-            if (shm->questionStatus[i] == 0) {
-                shm->questionStatus[i] = 1;
+            if (shm->qStatus[i] == 0) {
+                shm->qStatus[i] = 1;
                 sleep(1 + rand() % 2);
 
-                shm->questionStatus[i] = 2;
+                shm->qStatus[i] = 2;
                 cout << "TA " << id << " marked Q"
                      << (i+1) << " for student #"
-                     << shm->currentStudent << endl;
+                     << shm->currStudent << endl;
                 break;
             }
         }
@@ -111,20 +111,20 @@ void TAprocess(int id, SharedData* shm) {
         // Check if all questions are done
         bool done = true;
         for (int i = 0; i < NUM_QUESTIONS; i++)
-            if (shm->questionStatus[i] != 2)
+            if (shm->qStatus[i] != 2)
                 done = false;
 
         if (done) {
-            shm->currentExamIndex++;
+            shm->currExamIndex++;
             loadExam(shm);
 
-            if (shm->currentStudent == 9999) {
+            if (shm->currStudent == 9999) {
                 shm->stopFlag = 1;
                 cout << "TA " << id << " terminating" << endl;
                 break;
             } else {
                 cout << "Up next: "
-                     << shm->currentStudent << endl;
+                     << shm->currStudent << endl;
             }
         }
     }
@@ -148,7 +148,7 @@ int main(int argc, char* argv[]) {
     int shmid = shmget(IPC_PRIVATE, sizeof(SharedData), IPC_CREAT | 0666);
     SharedData* shm = (SharedData*) shmat(shmid, NULL, 0);
 
-    shm->currentExamIndex = 0;
+    shm->currExamIndex = 0;
     shm->stopFlag = 0;
 
     loadRubric(shm);
